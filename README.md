@@ -4,8 +4,7 @@ Also allows to return sum of the fare of all the trips.
 
 Requirements:
 
-Java 8
-Scala 2.11.*
+Java 8, Scala 2.11.*
 
 Usage:
 ``` scala
