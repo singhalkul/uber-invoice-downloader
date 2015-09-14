@@ -8,7 +8,7 @@ Java 8
 Scala 2.11.*
 
 Usage:
-
+``` scala
   private val from = LocalDate.parse("01/09/2015", DateTimeFormatter.ofPattern("dd/MM/yyyy"))
   private val to = LocalDate.parse("05/09/2015", DateTimeFormatter.ofPattern("dd/MM/yyyy"))
 
@@ -21,3 +21,4 @@ Usage:
   PDFProcessor.mergeFiles(files, mergedReceiptFile)
 
   val totalFare = files.map(PDFProcessor.getGrossFare).foldLeft(0.00)(_+_)
+```
