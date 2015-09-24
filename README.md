@@ -10,9 +10,10 @@ Usage:
 ``` scala
   private val from = LocalDate.parse("01/09/2015", DateTimeFormatter.ofPattern("dd/MM/yyyy"))
   private val to = LocalDate.parse("05/09/2015", DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+  private val paymentMethod = "payt"
 
   val uberInteractor = UberInteractor(username, password, receiptDownloadDir)
-  val trips = uberInteractor.trips(from, to)
+  val trips = uberInteractor.trips(from, to, paymentMethod)
   uberInteractor.downloadInvoices(trips)
 
   val files = new File(receiptDownloadDir).listFiles.toList

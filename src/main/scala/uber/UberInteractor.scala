@@ -22,12 +22,13 @@ case class UberInteractor(userName: String, password: String, downloadDir: Strin
   driver.get("https://login.uber.com/login")
   login()
 
-  def trips(from: LocalDate, to: LocalDate) = {
+  def trips(from: LocalDate, to: LocalDate, paymentMethod: String) = {
     val tripTable = driver.findElement(By.id("trips-table")).findElement(By.tagName("tbody"))
     val trips = tripTable.findElements(By.cssSelector("tr.trip-expand__origin")).asScala
     trips.map(buildTrip)
       .filter(filterOutCanceledTrips)
-      .filter(trip => trip.date.isAfter(from) && trip.date.isBefore(to))
+      .filter(t => t.date.isAfter(from) && t.date.isBefore(to))
+      .filter(filterBasedOnPaymentMethod(_, paymentMethod))
   }
 
   def downloadInvoices(trips: Seq[Trip]) {
@@ -51,15 +52,11 @@ case class UberInteractor(userName: String, password: String, downloadDir: Strin
     driver.findElement(By.cssSelector("button[type='submit']")).click()
     println("Logged in")
   }
+  
+  private def filterOutCanceledTrips(trip: Trip) = !trip.fare.contains("Canceled")
 
-  private def tripIds() = {
-    val trips = driver.findElement(By.id("trips-table"))
-    val rows = trips.findElements(By.className("trip-expand__origin")).asScala
-    rows.map(r => r.getAttribute("data-target")).map(_.drop(6))
-  }
-
-  def filterOutCanceledTrips(trip: Trip) = !trip.fare.contains("Canceled")
-
+  private def filterBasedOnPaymentMethod(trip: Trip, paymentMethod: String) = trip.paymentMethod.contains(paymentMethod) 
+  
   private def buildTrip(row: WebElement) = {
     val tripId = row.getAttribute("data-target").drop(6)
     val columns = row.findElements(By.tagName("td")).asScala.toList
