@@ -8,17 +8,14 @@ Java 8, Scala 2.11.*
 
 Usage:
 ``` scala
+  private val username = ??
+  private val password = ??
   private val from = LocalDate.parse("01/09/2015", DateTimeFormatter.ofPattern("dd/MM/yyyy"))
-  private val to = LocalDate.parse("05/09/2015", DateTimeFormatter.ofPattern("dd/MM/yyyy"))
+  private val to = LocalDate.parse("30/09/2015", DateTimeFormatter.ofPattern("dd/MM/yyyy"))
   private val paymentMethod = "payt"
+  private val invoiceFileLocation = "receipt.pdf"
+  private val driver = "FIREFOX" //other one is CHROME
 
-  val uberInteractor = UberInteractor(username, password, receiptDownloadDir)
-  val trips = uberInteractor.trips(from, to, paymentMethod)
-  uberInteractor.downloadInvoices(trips)
-
-  val files = new File(receiptDownloadDir).listFiles.toList
-
-  PDFProcessor.mergeFiles(files, mergedReceiptFile)
-
-  val totalFare = files.map(PDFProcessor.getGrossFare).foldLeft(0.00)(_+_)
+  private val invoiceDownloader = InvoiceDownloader(username, password, invoiceFileLocation, driver)
+  invoiceDownloader.download(from, to, paymentMethod)
 ```
