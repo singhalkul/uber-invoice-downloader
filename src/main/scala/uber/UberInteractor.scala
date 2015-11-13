@@ -10,6 +10,7 @@ import org.openqa.selenium.{By, WebElement}
 import uber.Trip.TripDateOrdering
 
 import scala.collection.JavaConverters._
+import scala.util.{Failure, Success, Try}
 
 /**
  * Author: Kul
@@ -35,9 +36,11 @@ case class UberInteractor(userName: String, password: String, driverProvider: Dr
 
   private def getTripsWithinDateRange(page: Int, from: LocalDate, to: LocalDate, previousTrips: Seq[Trip]): Seq[Trip] = {
     gotoPage(page)
-    val filteredTripsFromPage = tripsFromPage.filter(t => dateBetween(t.date, from, to))
+    val pageTrips = tripsFromPage
+    val lastTripOnPage = tripsFromPage.last
+    val filteredTripsFromPage = pageTrips.filter(t => dateBetween(t.date, from, to))
     val allTrips = (filteredTripsFromPage ++ previousTrips).sorted
-    if(from.isBefore(allTrips.head.date)) getTripsWithinDateRange(page + 1, from, to, allTrips) else allTrips
+    if(!lastTripOnPage.date.isBefore(from)) getTripsWithinDateRange(page + 1, from, to, allTrips) else allTrips
   }
 
   private def tripsFromPage = {
@@ -82,9 +85,13 @@ case class UberInteractor(userName: String, password: String, driverProvider: Dr
     val tripId = trip.id
     driver.get(s"https://riders.uber.com/trips/$tripId")
     val downloadButton = driver.findElement(By.xpath("//button[text()='Download Invoice']"))
-    new WebDriverWait(driver, 10).until(ExpectedConditions.visibilityOf(downloadButton))
-    val act = new Actions(driver)
-    act.moveToElement(downloadButton)
-    downloadButton.click()
+    val buttonVisibleTry = Try { new WebDriverWait(driver, 10).until(ExpectedConditions.visibilityOf(downloadButton)) }
+    buttonVisibleTry match {
+      case Success(_) =>
+        val act = new Actions (driver)
+        act.moveToElement (downloadButton)
+        downloadButton.click ()
+      case Failure(_) => println("Could not download invoice for trip: " + s"https://riders.uber.com/trips/$tripId")
+    }
   }
 }
