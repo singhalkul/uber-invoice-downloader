@@ -8,6 +8,8 @@ import org.apache.pdfbox.pdfparser.PDFParser
 import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.util.{PDFMergerUtility, PDFTextStripper}
 
+import scala.util.{Failure, Success, Try}
+
 /**
  * Author: Kul
  */
@@ -27,11 +29,28 @@ object PDFProcessor {
 
   private def tripDate(file: File) = {
     val content = readPDFContent(file)
+    val oldDateFormat = tripDateOldFormat(content)
+    oldDateFormat match {
+      case Success(date) => date
+      case _ => newDateFormat(content).get
+    }
+  }
+
+  private def newDateFormat(content: String): Try[LocalDate] = {
+    val pattern = ".*Invoice Date: (\\d+ \\w+ \\d+).*".r
+    val date = pattern.findFirstIn(content)
+    date match {
+      case Some(pattern(date)) => Success(LocalDate.parse(date, DateTimeFormatter.ofPattern("d MMMM yyyy")))
+      case None => Failure(new RuntimeException("Could not parse date in format d MMMM yyyy"))
+    }
+  }
+
+  private def tripDateOldFormat(content: String): Try[LocalDate] = {
     val pattern = ".*Invoice Date: (\\w+ \\d+, \\d+).*".r
     val date = pattern.findFirstIn(content)
     date match {
-      case Some(pattern(date)) => LocalDate.parse(date, DateTimeFormatter.ofPattern("MMMM d, yyyy"))
-      case None => throw new RuntimeException("error")
+      case Some(pattern(date)) => Success(LocalDate.parse(date, DateTimeFormatter.ofPattern("MMMM d, yyyy")))
+      case None => Failure(new RuntimeException("Could not parse date in format MMMM d, yyyy"))
     }
   }
 
